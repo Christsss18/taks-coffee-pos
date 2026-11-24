@@ -88,7 +88,7 @@
                 <label class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Metode Pembayaran</label>
                 <div class="grid grid-cols-2 gap-2 mt-1.5">
                     <button onclick="setPaymentMethod('QRIS')" id="pay-qris" class="pay-btn py-2 px-3 rounded-xl text-sm font-semibold border-2 border-zinc-900 bg-zinc-900 text-white transition">QRIS</button>
-                    <button onclick="setPaymentMethod('Cash')" id="pay-cash" class="pay-btn py-2 px-3 rounded-xl text-sm font-semibold border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 transition">Tunai (Cash)</button>
+                    <button onclick="setPaymentMethod('CASH')" id="pay-cash" class="pay-btn py-2 px-3 rounded-xl text-sm font-semibold border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 transition">Tunai (Cash)</button>
                 </div>
             </div>
 
@@ -230,13 +230,13 @@
             { id: 3, name: "Aren Latte", category: "Coffee", price: 28000 },
             { id: 4, name: "Vanilla Latte", category: "Coffee", price: 28000 },
             { id: 5, name: "Butterscotch Seasalt Latte", category: "Coffee", price: 28000 },
-            { id: 5, name: "Coldbrew", category: "Coffee", price: 30000 },
+            { id: 6, name: "Cold Brew", category: "Coffee", price: 30000 },
 
             // NON COFFEE
-            { id: 6, name: "Jasmine Milk Tea", category: "Non Coffee", price: 17000 },
-            { id: 7, name: "House Lemonade", category: "Non Coffee", price: 17000 },
-            { id: 8, name: "Strawberry Fizz", category: "Non Coffee", price: 20000 },
-            { id: 9, name: "Chocolate Milk", category: "Non Coffee", price: 22000 }
+            { id: 7, name: "Jasmine Milk Tea", category: "Non Coffee", price: 17000 },
+            { id: 8, name: "House Lemonade", category: "Non Coffee", price: 17000 },
+            { id: 9, name: "Strawberry Fizz", category: "Non Coffee", price: 20000 },
+            { id: 10, name: "Chocolate Milk", category: "Non Coffee", price: 22000 }
         ];
 
         let cart = [];
@@ -367,7 +367,7 @@
 
             const totalAmount = getGrandTotal();
             const cashReceived = parseInt(document.getElementById("cash-received").value) || 0;
-            if (paymentMethod === "Cash" && cashReceived < totalAmount) {
+            if (paymentMethod === "CASH" && cashReceived < totalAmount) {
                 alert("Uang tunai yang diterima kurang dari total pembayaran.");
                 return;
             }
@@ -377,25 +377,29 @@
             btn.innerText = "Menyimpan...";
 
             const customerName = document.getElementById("customer-name").value.trim() || "Pelanggan";
+            
+            // Payload disesuaikan 100% dengan OrderRequest di PosController.java
             const payload = {
                 customerName: customerName,
                 paymentMethod: paymentMethod,
+                subtotal: totalAmount,
+                tax: 0,
                 totalAmount: totalAmount,
-                items: cart.map(c => ({
-                    productName: c.name,
-                    quantity: c.qty,
-                    price: c.price
+                cartItems: cart.map(c => ({
+                    name: c.name,
+                    price: c.price,
+                    qty: c.qty
                 }))
             };
 
             try {
-                const res = await fetch("/api/orders", {
+                const res = await fetch("/api/orders/checkout", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
 
-                if (!res.ok) throw new Error("Gagal menyimpan transaksi ke server");
+                if (!res.ok) throw new Error("Gagal menyimpan transaksi ke server (" + res.status + ")");
                 const savedOrder = await res.json();
 
                 showReceipt(savedOrder, payload, cashReceived);
@@ -416,15 +420,15 @@
             document.getElementById("rec-method").innerText = payload.paymentMethod;
             document.getElementById("rec-total").innerText = formatRp(payload.totalAmount);
 
-            document.getElementById("rec-items").innerHTML = payload.items.map(i => `
+            document.getElementById("rec-items").innerHTML = payload.cartItems.map(i => `
                 <div class="flex justify-between text-[11px]">
-                    <span>${i.productName} x${i.quantity}</span>
-                    <span>${formatRp(i.price * i.quantity)}</span>
+                    <span>${i.name} x${i.qty}</span>
+                    <span>${formatRp(i.price * i.qty)}</span>
                 </div>
             `).join("");
 
             const cashRow = document.getElementById("rec-cash-row");
-            if (payload.paymentMethod === "Cash") {
+            if (payload.paymentMethod === "CASH") {
                 cashRow.classList.remove("hidden");
                 document.getElementById("rec-cash").innerText = formatRp(cashReceived);
                 document.getElementById("rec-change").innerText = formatRp(cashReceived - payload.totalAmount);
@@ -461,15 +465,18 @@
 
         async function loadHistory() {
             try {
-                const res = await fetch("/api/orders");
+                const res = await fetch("/api/orders/history");
                 ordersHistory = await res.json();
-                const tbody = document.getElementById("history-tbody");
+                // Urutkan transaksi terbaru di paling atas
+                ordersHistory.sort((a, b) => (b.id || 0) - (a.id || 0));
 
+                const tbody = document.getElementById("history-tbody");
                 let totalRev = 0;
+
                 tbody.innerHTML = ordersHistory.map(o => {
                     totalRev += (o.totalAmount || 0);
-                    const itemsText = (o.items || []).map(i => `${i.productName} (${i.quantity}x)`).join(", ");
-                    const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString("id-ID") : "-";
+                    const itemsText = o.itemsSummary || (o.items || []).map(i => `${i.productName} (${i.quantity}x)`).join(", ");
+                    const dateStr = o.orderDate ? new Date(o.orderDate).toLocaleString("id-ID") : "-";
                     return `
                         <tr>
                             <td class="py-3 px-2 font-bold">#${o.id}</td>
@@ -492,8 +499,8 @@
             if (!ordersHistory.length) return alert("Belum ada data untuk diekspor.");
             let csv = "ID,Waktu,Pelanggan,Item,Metode,Total\n";
             ordersHistory.forEach(o => {
-                const itemsText = (o.items || []).map(i => `${i.productName} x${i.quantity}`).join(" | ");
-                csv += `${o.id},"${o.createdAt || ""}","${o.customerName || ""}","${itemsText}",${o.paymentMethod},${o.totalAmount}\n`;
+                const itemsText = o.itemsSummary || (o.items || []).map(i => `${i.productName} x${i.quantity}`).join(" | ");
+                csv += `${o.id},"${o.orderDate || ""}","${o.customerName || ""}","${itemsText}",${o.paymentMethod},${o.totalAmount}\n`;
             });
             const blob = new Blob([csv], { type: "text/csv" });
             const url = URL.createObjectURL(blob);
