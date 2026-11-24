@@ -29,10 +29,10 @@
     <!-- Navbar -->
     <header class="bg-white border-b border-zinc-200 px-4 lg:px-6 py-3 flex items-center justify-between sticky top-0 z-30">
         <div class="flex items-center gap-3">
-            <img src="/logo-taks.png" alt="Logo Taks! Coffee" class="w-11 h-11 rounded-xl object-contain border border-zinc-200 bg-white p-0.5">
+            <img src="/logo-taks.jpg" alt="Logo Taks! Coffee" class="w-11 h-11 rounded-xl object-contain border border-zinc-200 bg-white p-0.5">
             <div>
                 <h1 class="font-bold text-lg tracking-tight leading-none">TAKS! COFFEE</h1>
-                <p class="text-xs text-zinc-500 mt-1">Point of Sale System</p>
+                <p class="text-xs text-zinc-500 mt-1">Daily Dose • Point of Sale</p>
             </div>
         </div>
 
@@ -54,14 +54,12 @@
             <!-- Filter Kategori -->
             <div class="flex gap-2 overflow-x-auto pb-1" id="category-filters">
                 <button onclick="filterCategory('Semua')" data-cat="Semua" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium bg-zinc-900 text-white whitespace-nowrap">Semua Menu</button>
-                <button onclick="filterCategory('Espresso Based')" data-cat="Espresso Based" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 whitespace-nowrap">Espresso Based</button>
-                <button onclick="filterCategory('Signature')" data-cat="Signature" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 whitespace-nowrap">Signature</button>
-                <button onclick="filterCategory('Manual Brew')" data-cat="Manual Brew" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 whitespace-nowrap">Manual Brew</button>
-                <button onclick="filterCategory('Non-Coffee')" data-cat="Non-Coffee" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 whitespace-nowrap">Non-Coffee</button>
+                <button onclick="filterCategory('Coffee')" data-cat="Coffee" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 whitespace-nowrap">Coffee</button>
+                <button onclick="filterCategory('Non Coffee')" data-cat="Non Coffee" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 whitespace-nowrap">Non Coffee</button>
             </div>
 
             <!-- Grid Menu -->
-            <div id="menu-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div id="menu-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
                 <!-- Diisi otomatis via JS -->
             </div>
         </section>
@@ -167,9 +165,9 @@
     <div id="receipt-overlay" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div id="receipt-modal" class="bg-white w-full max-w-xs rounded-2xl p-5 shadow-xl text-zinc-900 font-mono text-xs">
             <div class="text-center border-b border-dashed border-zinc-300 pb-3">
-                <img src="/logo-taks.png" alt="Taks! Coffee" class="w-14 h-14 mx-auto mb-1.5 object-contain">
+                <img src="/logo-taks.jpg" alt="Taks! Coffee" class="w-14 h-14 mx-auto mb-1.5 object-contain">
                 <h3 class="font-bold text-sm tracking-wide">TAKS! COFFEE</h3>
-                <p class="text-[11px] text-zinc-500">Specialty Coffee Booth</p>
+                <p class="text-[11px] text-zinc-500">@takscoffee.id</p>
                 <p id="rec-date" class="text-[10px] text-zinc-400 mt-1"></p>
             </div>
 
@@ -226,14 +224,19 @@
 
     <script>
         const MENU_ITEMS = [
-            { id: 1, name: "Americano (Ice/Hot)", category: "Espresso Based", price: 18000 },
-            { id: 2, name: "Caffe Latte (Ice/Hot)", category: "Espresso Based", price: 22000 },
-            { id: 3, name: "Aren Latte", category: "Signature", price: 24000 },
-            { id: 4, name: "Butterscotch Sea Salt Latte", category: "Signature", price: 28000 },
-            { id: 5, name: "Vanilla Latte", category: "Espresso Based", price: 24000 },
-            { id: 6, name: "V60 Manual Brew", category: "Manual Brew", price: 25000 },
-            { id: 7, name: "Matcha Latte", category: "Non-Coffee", price: 25000 },
-            { id: 8, name: "Chocolate Classic", category: "Non-Coffee", price: 23000 }
+            // COFFEE
+            { id: 1, name: "Americano", category: "Coffee", price: 20000 },
+            { id: 2, name: "Caffe Latte", category: "Coffee", price: 23000 },
+            { id: 3, name: "Aren Latte", category: "Coffee", price: 28000 },
+            { id: 4, name: "Vanilla Latte", category: "Coffee", price: 28000 },
+            { id: 5, name: "Butterscotch Seasalt Latte", category: "Coffee", price: 28000 },
+            { id: 5, name: "Coldbrew", category: "Coffee", price: 30000 },
+
+            // NON COFFEE
+            { id: 6, name: "Jasmine Milk Tea", category: "Non Coffee", price: 17000 },
+            { id: 7, name: "House Lemonade", category: "Non Coffee", price: 17000 },
+            { id: 8, name: "Strawberry Fizz", category: "Non Coffee", price: 20000 },
+            { id: 9, name: "Chocolate Milk", category: "Non Coffee", price: 22000 }
         ];
 
         let cart = [];
